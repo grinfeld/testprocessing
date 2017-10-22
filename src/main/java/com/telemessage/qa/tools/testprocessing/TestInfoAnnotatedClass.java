@@ -9,14 +9,15 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Grinfeld Mikhail
@@ -100,7 +101,7 @@ public class TestInfoAnnotatedClass {
 
             jw.beginType(className, "class", EnumSet.of(Modifier.PUBLIC));
             jw.emitEmptyLine();
-
+            List<String> forToString = new ArrayList<>();
             for (Method m : clazz.getMethods()) {
                 boolean isArray = m.getReturnType().isArray();
                 Class typeToCheck = isArray ? m.getReturnType().getComponentType() : m.getReturnType();
@@ -111,15 +112,25 @@ public class TestInfoAnnotatedClass {
                 String typeToBe = typeToCheck.getCanonicalName();
                 if (typeToCheck.isAnnotation()) {
                     typeToBe = prefix + "." + typeToCheck.getSimpleName() + classSuffix;
-                    System.out.println("ToBe: " + typeToBe);
                 }
-                writeFieldAndMethods(jw, typeToBe, m.getName(), isArray);
+                if (!excluded.contains(m.getName()))
+                    forToString.add(writeFieldAndMethods(jw, typeToBe, m.getName(), isArray));
             }
-
+            writePrivateStaticToStringForList(jw);
+            jw.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
+            jw.emitStatement(forToString.stream().collect(Collectors.joining(" + \",\" +\r\n", "return \"{\" + ", " + \"}\"")));
+            jw.endMethod();
             jw.endType();
             jw.close();
         }
 
+    }
+
+    private void writePrivateStaticToStringForList(JavaWriter jw) throws IOException {
+        jw.beginMethod("String", "listAsString", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "java.util.List<?>", "list");
+        jw.emitStatement("return list.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(\",\", \"[\", \"]\"))");
+        jw.endMethod();
+        jw.emitEmptyLine();
     }
 
     private Class boxedClass(Class clazz) {
@@ -142,25 +153,30 @@ public class TestInfoAnnotatedClass {
         return clazz;
     }
 
-    private void writeFieldAndMethods(JavaWriter jw, String fieldType, String fieldName, boolean isArray) throws IOException {
-        if (excluded.contains(fieldName))
-            return;
+    private String writeFieldAndMethods(JavaWriter jw, String fieldType, String fieldName, boolean isArray) throws IOException {
         String type = fieldType;
         if (isArray) {
             type = "java.util.List<" + fieldType + ">";
         }
-        jw.emitField(type, fieldName, EnumSet.of(Modifier.PRIVATE));
-        jw.emitEmptyLine();
-        jw.beginMethod("void", fieldName, EnumSet.of(Modifier.PUBLIC), type, fieldName);
+        jw.emitField(type, fieldName + (isArray ? "s" : ""), EnumSet.of(Modifier.PRIVATE));
+        jw.beginMethod("void", fieldName + (isArray ? "s" : ""), EnumSet.of(Modifier.PUBLIC), type, fieldName);
         if (isArray) {
-            jw.emitStatement("this.%s = %s == null ? new java.util.ArrayList<%s>() : %s", fieldName, fieldName, fieldType, fieldName);
+            jw.emitStatement("this.%ss = %ss == null ? new java.util.ArrayList<%s>() : %ss", fieldName, fieldName, fieldType, fieldName);
         } else {
             jw.emitStatement("this.%s = %s", fieldName, fieldName);
         }
         jw.endMethod();
-        jw.beginMethod(type, fieldName, EnumSet.of(Modifier.PUBLIC));
-        jw.emitStatement("return this.%s", fieldName);
+        jw.beginMethod(type, fieldName + (isArray ? "s" : ""), EnumSet.of(Modifier.PUBLIC));
+        jw.emitStatement("return this.%s", fieldName + (isArray ? "s" : ""));
         jw.endMethod();
+        if (isArray) {
+            jw.beginMethod("boolean", "add" + fieldName.substring(0,1).toUpperCase() + fieldName.substring(1), EnumSet.of(Modifier.PUBLIC), fieldType, fieldName);
+            jw.emitStatement("return %s != null ? this.%ss.add(%s) : false", fieldName, fieldName, fieldName);
+            jw.endMethod();
+        }
+
         jw.emitEmptyLine();
+
+        return isArray ? "\"" + fieldName + "s = \" + " + "listAsString(" + fieldName + "s())" : "\"" + fieldName + " = \" + " + "String.valueOf(" + fieldName + "())";
     }
 }
