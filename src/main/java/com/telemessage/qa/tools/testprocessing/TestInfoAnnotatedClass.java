@@ -127,7 +127,7 @@ public class TestInfoAnnotatedClass {
     }
 
     private void writePrivateStaticToStringForList(JavaWriter jw) throws IOException {
-        jw.beginMethod("String", "listAsString", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "java.util.List<?>", "list");
+        jw.beginMethod("String", "listAsString", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC), "java.util.List<?>", "list");
         jw.emitStatement("return list.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(\",\", \"[\", \"]\"))");
         jw.endMethod();
         jw.emitEmptyLine();
