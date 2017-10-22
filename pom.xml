@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.telemessage.qa.tools</groupId>
+    <artifactId>test-processing</artifactId>
+    <version>0.7</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
+        <maven.source.plugin.version>3.0.1</maven.source.plugin.version>
+        <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
+        <tm.static-data.version>0.7</tm.static-data.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.telemessage.qa.tools</groupId>
+            <artifactId>static-data</artifactId>
+            <version>${tm.static-data.version}</version>
+        </dependency>
+        <!-- Java Poet to generate java files -->
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>javapoet</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>javawriter</artifactId>
+            <version>2.5.1</version>
+        </dependency>
+        <!-- Auto service annotation processor -->
+        <dependency>
+            <groupId>com.google.auto.service</groupId>
+            <artifactId>auto-service</artifactId>
+            <version>1.0-rc3</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <compilerVersion>1.8</compilerVersion>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+                <!--<executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <configuration>
+                            <compilerArgument>-proc:none</compilerArgument>
+                            <includes>
+                                <include>com/telemessage/qa/tools/testprocessing/TestBuilderProcessor.java</include>
+                                &lt;!&ndash;include dependencies required for TestBuilderProcessor &ndash;&gt;
+                            </includes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-project</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>-->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven.source.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven.javadoc.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>test-processing</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
