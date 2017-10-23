@@ -24,7 +24,9 @@ import java.util.stream.Collectors;
 public class TestInfoAnnotatedClass {
 
     // there is meaning for order. First, classes without any nested annotation
-    static final List<Class> list = Arrays.asList(new Class[] {
+    // TODO: move to different package, to disconnect Data which could be changed from annotation processor
+    // move this list to be parameter in annotation (i.e. to static data package)
+    private static final List<Class> list = Arrays.asList(
             Attachment.class,
             Client.class,
             Email.class,
@@ -37,14 +39,12 @@ public class TestInfoAnnotatedClass {
             Recipient.class,
             Message.class,
             MyTest.class
-    });
+    );
 
-    static final List<String> excluded = Arrays.asList(new String[] {
-            "equals",
+    private static final List<String> excluded = Arrays.asList("equals",
             "toString",
             "hashCode",
-            "annotationType"
-    });
+            "annotationType");
 
     private final TypeElement annotatedClassElement;
     private final String classSuffix;
