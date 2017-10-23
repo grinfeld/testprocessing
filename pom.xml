@@ -15,7 +15,7 @@
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
         <maven.source.plugin.version>3.0.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
-        <tm.static-data.version>0.7</tm.static-data.version>
+        <tm.static-data.version>0.8</tm.static-data.version>
     </properties>
 
     <dependencies>
@@ -128,6 +128,4 @@
             </plugin>
         </plugins>
     </build>
-
-
 </project>

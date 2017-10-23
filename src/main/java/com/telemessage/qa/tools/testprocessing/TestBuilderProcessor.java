@@ -1,7 +1,7 @@
 package com.telemessage.qa.tools.testprocessing;
 
 import com.google.auto.service.AutoService;
-import com.telemessage.qa.tools.testprocessing.annotations.processor.TestInfo;
+import com.telemessage.qa.tools.staticdata.processor.TestInfo;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;

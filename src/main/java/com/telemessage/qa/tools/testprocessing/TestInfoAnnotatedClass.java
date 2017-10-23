@@ -1,8 +1,8 @@
 package com.telemessage.qa.tools.testprocessing;
 
 import com.squareup.javawriter.JavaWriter;
+import com.telemessage.qa.tools.staticdata.processor.TestInfo;
 import com.telemessage.qa.tools.testprocessing.annotations.data.*;
-import com.telemessage.qa.tools.testprocessing.annotations.processor.TestInfo;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;

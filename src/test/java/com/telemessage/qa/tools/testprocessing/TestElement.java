@@ -1,6 +1,6 @@
 package com.telemessage.qa.tools.testprocessing;
 
-import com.telemessage.qa.tools.testprocessing.annotations.processor.TestInfo;
+import com.telemessage.qa.tools.staticdata.processor.TestInfo;
 
 /**
  * @author Grinfeld Mikhail
