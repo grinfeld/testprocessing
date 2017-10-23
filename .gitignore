@@ -40,9 +40,9 @@ buildNumber.properties
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff:
-.idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries
+.idea/
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
@@ -55,7 +55,6 @@ buildNumber.properties
 
 # Gradle:
 .idea/**/gradle.xml
-.idea/**/libraries
 
 # CMake
 cmake-build-debug/
@@ -136,16 +135,5 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
-.gitignore
-.idea/compiler.xml
-.idea/encodings.xml
-.idea/inspectionProfiles/
-.idea/libraries/
-.idea/misc.xml
-.idea/modules.xml
 .idea/uiDesigner.xml
-.idea/workspace.xml
-src/main/resources/
-src/test/java/com/telemessage/qa/tools/testprocessing/TestElement.class
-test-processing.iml
-testprocessing.iml
+src/**/*.class
