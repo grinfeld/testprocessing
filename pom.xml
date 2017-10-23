@@ -129,4 +129,16 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>local-maven-release</id>
+            <name>QA tools</name>
+            <url>http://serverbuilder:8090/artifactory/ext-release-local/</url>
+        </repository>
+        <repository>
+            <id>local-maven-lib</id>
+            <name>3rd party libs local</name>
+            <url>http://serverbuilder:8090/artifactory/libs-release-local</url>
+        </repository>
+    </repositories>
 </project>

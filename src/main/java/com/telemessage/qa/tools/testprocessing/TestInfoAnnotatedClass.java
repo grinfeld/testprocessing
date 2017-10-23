@@ -102,8 +102,7 @@ public class TestInfoAnnotatedClass {
             for (Method m : clazz.getMethods()) {
                 boolean isArray = m.getReturnType().isArray();
                 Class typeToCheck = isArray ? m.getReturnType().getComponentType() : m.getReturnType();
-
-                if (isArray && typeToCheck.isPrimitive()) {
+                if (typeToCheck.isPrimitive()) {
                     typeToCheck = boxedClass(typeToCheck);
                 }
                 String typeToBe = typeToCheck.getCanonicalName();
@@ -114,9 +113,9 @@ public class TestInfoAnnotatedClass {
                     infos.add(prepareFieldData(typeToBe, m.getName(), typeToCheck, isArray));
                 }
             }
-            infos.forEach(f -> writeFieldAndMethods(jw, f));
-            writeToString(jw, infos);
 
+            writeFieldsSetterAndGetter(jw, infos);
+            writeToString(jw, infos);
 
             writePrivateStaticToStringForList(jw);
 
@@ -133,19 +132,27 @@ public class TestInfoAnnotatedClass {
         return new FieldData(fieldName + (isArray ? "s" : ""), type, fieldType, fieldName, annotClass, isArray);
     }
 
-    private static void writeToString(JavaWriter jw, List<FieldData> infos) throws IOException {
-        try {
-            jw.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
-            String toStringData = infos.stream()
-                .map(f -> f.isArray() ?
-                        "\"" + f.getName() + "s = \" + " + "listAsString(" + f.getMethod() + "())" :
-                        "\"" + f.getName() + " = \" + " + "String.valueOf(" + f.getMethod() + "())")
-                .collect(Collectors.joining(" + \",\" +\r\n", "return \"{\" + ", " + \"}\""));
-            jw.emitStatement(toStringData);
-            jw.endMethod();
-        } catch (Exception ioe) {
-            throw new RuntimeException(ioe);
+    private static void writeFillMethod(JavaWriter jw, List<FieldData> infos, String currentClassName, Class annotCLass) throws IOException {
+        jw.beginMethod(currentClassName, "fill", EnumSet.of(Modifier.PUBLIC), annotCLass.getCanonicalName(), "me");
+        jw.endMethod();
+    }
+
+    private static void writeFieldsSetterAndGetter(JavaWriter jw, List<FieldData> infos) throws IOException {
+        for (FieldData f : infos) {
+            writeFieldAndMethods(jw, f);
         }
+    }
+
+    private static void writeToString(JavaWriter jw, List<FieldData> infos) throws IOException {
+        jw.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
+        String toStringData = infos.stream()
+            .map(f -> f.isArray() ?
+                    "\"" + f.getName() + "s = \" + " + "listAsString(" + f.getMethod() + "())" :
+                    "\"" + f.getName() + " = \" + " + "String.valueOf(" + f.getMethod() + "())")
+            .collect(Collectors.joining(" + \",\" +\r\n", "return \"{\" + ", " + \"}\""));
+        jw.emitStatement(toStringData);
+        jw.endMethod();
+        jw.emitEmptyLine();
     }
 
     private static void writePrivateStaticToStringForList(JavaWriter jw) throws IOException {
@@ -153,6 +160,55 @@ public class TestInfoAnnotatedClass {
         jw.emitStatement("return list.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(\",\", \"[\", \"]\"))");
         jw.endMethod();
         jw.emitEmptyLine();
+    }
+
+    private static void writeFieldAndMethods(JavaWriter jw, FieldData info) throws IOException {
+        String methodSuffix = info.getName().substring(0, 1).toUpperCase() + info.getName().substring(1);
+        jw.emitField(info.getMethodType(), info.getMethod(), EnumSet.of(Modifier.PRIVATE));
+        jw.beginMethod("void", info.getMethod(), EnumSet.of(Modifier.PUBLIC), info.getMethodType(), info.getName());
+        if (info.isArray()) {
+            jw.emitStatement("this.%ss = %ss == null ? new java.util.ArrayList<%s>() : %ss", info.getName(), info.getName(), info.getFieldType(), info.getName());
+        } else {
+            jw.emitStatement("this.%s = %s", info.getName(), info.getName());
+        }
+        jw.endMethod();
+        jw.beginMethod(info.getMethodType(), info.getMethod(), EnumSet.of(Modifier.PUBLIC));
+        jw.emitStatement("return this.%s", info.getMethod());
+        jw.endMethod();
+        if (info.isArray()) {
+            jw.beginMethod("boolean", "add" + methodSuffix, EnumSet.of(Modifier.PUBLIC), info.getFieldType(), info.getName());
+            jw.emitStatement("return %s != null ? this.%ss.add(%s) : false", info.getName(), info.getName(), info.getName());
+            jw.endMethod();
+        }
+
+        jw.emitEmptyLine();
+    }
+
+    private static Object initialValue(Class clazz) {
+        if (clazz.equals(double.class))
+            return (double)1;
+        else if (clazz.equals(int.class))
+            return (int)1;
+        else if (clazz.equals(float.class))
+            return (float)1;
+        else if (clazz.equals(short.class))
+            return (short)1;
+        else if (clazz.equals(long.class))
+            return (long)1;
+        else if (clazz.equals(boolean.class))
+            return (boolean)false;
+        else if (clazz.equals(byte.class))
+            return (byte)1;
+        else if(clazz.equals(char.class))
+            return (char)'\0';
+        else if(clazz.equals(String.class))
+            return "";
+        else if (clazz.isEnum()) {
+            try {
+                return Class.forName(clazz.getCanonicalName() + ".NA");
+            } catch (Exception ignore){}
+        }
+        return clazz;
     }
 
     private static Class boxedClass(Class clazz) {
@@ -173,32 +229,6 @@ public class TestInfoAnnotatedClass {
         else if(clazz.equals(char.class))
             return Character.class;
         return clazz;
-    }
-
-    private static void writeFieldAndMethods(JavaWriter jw, FieldData info) {
-        try {
-            String methodSuffix = info.getName().substring(0, 1).toUpperCase() + info.getName().substring(1);
-            jw.emitField(info.getMethodType(), info.getMethod(), EnumSet.of(Modifier.PRIVATE));
-            jw.beginMethod("void", info.getMethod(), EnumSet.of(Modifier.PUBLIC), info.getMethodType(), info.getName());
-            if (info.isArray()) {
-                jw.emitStatement("this.%ss = %ss == null ? new java.util.ArrayList<%s>() : %ss", info.getName(), info.getName(), info.getFieldType(), info.getName());
-            } else {
-                jw.emitStatement("this.%s = %s", info.getName(), info.getName());
-            }
-            jw.endMethod();
-            jw.beginMethod(info.getMethodType(), info.getMethod(), EnumSet.of(Modifier.PUBLIC));
-            jw.emitStatement("return this.%s", info.getMethod());
-            jw.endMethod();
-            if (info.isArray()) {
-                jw.beginMethod("boolean", "add" + methodSuffix, EnumSet.of(Modifier.PUBLIC), info.getFieldType(), info.getName());
-                jw.emitStatement("return %s != null ? this.%ss.add(%s) : false", info.getName(), info.getName(), info.getName());
-                jw.endMethod();
-            }
-
-            jw.emitEmptyLine();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
     }
 
     private static class FieldData {
