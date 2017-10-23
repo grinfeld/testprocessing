@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -117,7 +118,10 @@ public class TestInfoAnnotatedClass {
             writeFieldsSetterAndGetter(jw, infos);
             writeToString(jw, infos);
 
+            writeFillMethod(jw, infos, className, clazz);
+
             writePrivateStaticToStringForList(jw);
+            writeInitialValueMethod(jw);
 
             jw.endType();
             jw.close();
@@ -129,12 +133,30 @@ public class TestInfoAnnotatedClass {
         if (isArray) {
             type = "java.util.List<" + fieldType + ">";
         }
-        return new FieldData(fieldName + (isArray ? "s" : ""), type, fieldType, fieldName, annotClass, isArray);
+        return new FieldData(fieldName, type, fieldType, fieldName, annotClass, isArray);
     }
 
-    private static void writeFillMethod(JavaWriter jw, List<FieldData> infos, String currentClassName, Class annotCLass) throws IOException {
+    private void writeFillMethod(JavaWriter jw, List<FieldData> infos, String currentClassName, Class annotCLass) throws IOException {
         jw.beginMethod(currentClassName, "fill", EnumSet.of(Modifier.PUBLIC), annotCLass.getCanonicalName(), "me");
+        Map<String, FieldData> mapData = infos.stream().collect(Collectors.toMap(FieldData::getName, Function.identity(), (k1, k2) -> k1));
+        for (Method m : annotCLass.getMethods()) {
+            FieldData fd = mapData.get(m.getName());
+            if (fd != null && m.getReturnType() != null && !m.getReturnType().equals(Void.class)) {
+                if (!fd.isArray() &&  !m.getReturnType().isAnnotation()) {
+                    jw.emitStatement("if (!java.util.Objects.equals(%s, initialValue(" + m.getReturnType().getCanonicalName() + ".class))) %s(%s)",
+                        "me." + fd.method + "()", fd.method, "me." + fd.method + "()");
+                    jw.emitEmptyLine();
+                } else if (m.getReturnType().isAnnotation()) {
+                    String objClassName = m.getReturnType().getSimpleName() + classSuffix;
+                    jw.emitStatement("%s(new %s().fill(%s))",
+                            fd.method, objClassName, "me." + fd.method + "()");
+                    jw.emitEmptyLine();
+                }
+            }
+        }
+        jw.emitStatement("return this");
         jw.endMethod();
+        jw.emitEmptyLine();
     }
 
     private static void writeFieldsSetterAndGetter(JavaWriter jw, List<FieldData> infos) throws IOException {
@@ -167,7 +189,7 @@ public class TestInfoAnnotatedClass {
         jw.emitField(info.getMethodType(), info.getMethod(), EnumSet.of(Modifier.PRIVATE));
         jw.beginMethod("void", info.getMethod(), EnumSet.of(Modifier.PUBLIC), info.getMethodType(), info.getName());
         if (info.isArray()) {
-            jw.emitStatement("this.%ss = %ss == null ? new java.util.ArrayList<%s>() : %ss", info.getName(), info.getName(), info.getFieldType(), info.getName());
+            jw.emitStatement("this.%s = %s == null ? new java.util.ArrayList<%s>() : %s", info.getName(), info.getName(), info.getFieldType(), info.getName());
         } else {
             jw.emitStatement("this.%s = %s", info.getName(), info.getName());
         }
@@ -177,38 +199,27 @@ public class TestInfoAnnotatedClass {
         jw.endMethod();
         if (info.isArray()) {
             jw.beginMethod("boolean", "add" + methodSuffix, EnumSet.of(Modifier.PUBLIC), info.getFieldType(), info.getName());
-            jw.emitStatement("return %s != null ? this.%ss.add(%s) : false", info.getName(), info.getName(), info.getName());
+            jw.emitStatement("return %s != null ? this.%s.add(%s) : false", info.getName(), info.getName(), info.getName());
             jw.endMethod();
         }
 
         jw.emitEmptyLine();
     }
 
-    private static Object initialValue(Class clazz) {
-        if (clazz.equals(double.class))
-            return (double)1;
-        else if (clazz.equals(int.class))
-            return (int)1;
-        else if (clazz.equals(float.class))
-            return (float)1;
-        else if (clazz.equals(short.class))
-            return (short)1;
-        else if (clazz.equals(long.class))
-            return (long)1;
-        else if (clazz.equals(boolean.class))
-            return (boolean)false;
-        else if (clazz.equals(byte.class))
-            return (byte)1;
-        else if(clazz.equals(char.class))
-            return (char)'\0';
-        else if(clazz.equals(String.class))
-            return "";
-        else if (clazz.isEnum()) {
-            try {
-                return Class.forName(clazz.getCanonicalName() + ".NA");
-            } catch (Exception ignore){}
-        }
-        return clazz;
+    private static void writeInitialValueMethod(JavaWriter jw) throws IOException {
+        jw.beginMethod("Object", "initialValue",  EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), "Class", "clazz");
+        jw.emitStatement("if (clazz.equals(double.class)) return (double)-1");
+        jw.emitStatement("if (clazz.equals(int.class)) return (int)-1");
+        jw.emitStatement("if (clazz.equals(float.class)) return (float)-1");
+        jw.emitStatement("if (clazz.equals(short.class)) return (short)-1");
+        jw.emitStatement("if (clazz.equals(long.class)) return (long)-1");
+        jw.emitStatement("if (clazz.equals(boolean.class)) return (boolean)false");
+        jw.emitStatement("if (clazz.equals(byte.class)) return (byte)-1");
+        jw.emitStatement("if (clazz.equals(char.class)) return (char)'\\0'");
+        jw.emitStatement("if (clazz.equals(String.class)) return \"\"");
+        jw.emitStatement("if (clazz.isEnum()) try { return Class.forName(clazz.getCanonicalName() + \".NA\"); } catch (Exception ignore){}");
+        jw.emitStatement("return null");
+        jw.endMethod();
     }
 
     private static Class boxedClass(Class clazz) {
