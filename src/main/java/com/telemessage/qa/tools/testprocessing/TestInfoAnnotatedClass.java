@@ -69,6 +69,7 @@ public class TestInfoAnnotatedClass {
 
     /**
      * The original element that was annotated with @Factory
+     * @return type element of annotated class
      */
     public TypeElement getTypeElement() {
         return annotatedClassElement;

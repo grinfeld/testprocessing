@@ -6,7 +6,7 @@
 
     <groupId>com.telemessage.qa.tools</groupId>
     <artifactId>test-processing</artifactId>
-    <version>0.7</version>
+    <version>0.8</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,6 +16,10 @@
         <maven.source.plugin.version>3.0.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
         <tm.static-data.version>0.8</tm.static-data.version>
+        <javapoet.version>1.9.0</javapoet.version>
+        <javawriter.version>2.5.1</javawriter.version>
+        <junit.version>4.12</junit.version>
+        <google.auto-service.version>1.0-rc3</google.auto-service.version>
     </properties>
 
     <dependencies>
@@ -28,24 +32,24 @@
         <dependency>
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
-            <version>1.9.0</version>
+            <version>${javapoet.version}</version>
         </dependency>
         <dependency>
             <groupId>com.squareup</groupId>
             <artifactId>javawriter</artifactId>
-            <version>2.5.1</version>
+            <version>${javawriter.version}</version>
         </dependency>
         <!-- Auto service annotation processor -->
         <dependency>
             <groupId>com.google.auto.service</groupId>
             <artifactId>auto-service</artifactId>
-            <version>1.0-rc3</version>
+            <version>${google.auto-service.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -58,29 +62,10 @@
                 <version>${maven.compiler.plugin.version}</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <compilerVersion>1.8</compilerVersion>
+                    <compilerVersion>${java.version}</compilerVersion>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
-                <!--<executions>
-                    <execution>
-                        <id>default-compile</id>
-                        <configuration>
-                            <compilerArgument>-proc:none</compilerArgument>
-                            <includes>
-                                <include>com/telemessage/qa/tools/testprocessing/TestBuilderProcessor.java</include>
-                                &lt;!&ndash;include dependencies required for TestBuilderProcessor &ndash;&gt;
-                            </includes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>compile-project</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                </executions>-->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -104,24 +89,6 @@
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>test-processing</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
                         </goals>
                     </execution>
                 </executions>
