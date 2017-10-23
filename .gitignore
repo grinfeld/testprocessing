@@ -51,7 +51,6 @@ buildNumber.properties
 .idea/**/dataSources.local.xml
 .idea/**/sqlDataSources.xml
 .idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
 
 # Gradle:
 .idea/**/gradle.xml
@@ -135,5 +134,4 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
-.idea/uiDesigner.xml
-src/**/*.class
+**/*.iml
