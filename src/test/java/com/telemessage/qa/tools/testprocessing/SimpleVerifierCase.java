@@ -9,8 +9,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
- * @author Grinfeld Mikhail
- * @since 10/22/2017.
+ * SPI for testing compilation errors.
+ * @author juancavallotti (http://jcavallotti.blogspot.co.il/2013/05/how-to-unit-test-annotation-processor.html)
  */
 public class SimpleVerifierCase implements CompilerTestCase {
 

@@ -143,21 +143,29 @@ public class TestInfoAnnotatedClass {
         for (Method m : annotCLass.getMethods()) {
             FieldData fd = mapData.get(m.getName());
             if (fd != null && m.getReturnType() != null && !m.getReturnType().equals(Void.class)) {
+
                 if (!fd.isArray() &&  !m.getReturnType().isAnnotation()) {
-                    jw.emitStatement("if (!java.util.Objects.equals(%s, initialValue(" + m.getReturnType().getCanonicalName() + ".class))) %s(%s)",
-                        "me." + fd.method + "()", fd.method, "me." + fd.method + "()");
-                    jw.emitEmptyLine();
+                    appendfillNoAnnotationType(jw, m.getReturnType(), fd);
                 } else if (m.getReturnType().isAnnotation()) {
-                    String objClassName = m.getReturnType().getSimpleName() + classSuffix;
-                    jw.emitStatement("%s(new %s().fill(%s))",
-                            fd.method, objClassName, "me." + fd.method + "()");
-                    jw.emitEmptyLine();
+                    appendFillWithAnnotation(jw, m.getReturnType(), fd, classSuffix);
+                } else if (fd.isArray()) {
+
                 }
             }
         }
         jw.emitStatement("return this");
         jw.endMethod();
         jw.emitEmptyLine();
+    }
+
+    private static void appendFillWithAnnotation(JavaWriter jw, Class returnType, FieldData fd, String classSuffix) throws IOException {
+        String objClassName = returnType.getSimpleName() + classSuffix;
+        jw.emitStatement("%s(new %s().fill(%s))", fd.method, objClassName, "me." + fd.method + "()");
+    }
+
+    private static void appendfillNoAnnotationType(JavaWriter jw, Class returnType, FieldData fd) throws IOException {
+        jw.emitStatement("if (!java.util.Objects.equals(%s, initialValue(" + returnType.getCanonicalName() + ".class))) %s(%s)",
+            "me." + fd.method + "()", fd.method, "me." + fd.method + "()");
     }
 
     private static void writeFieldsSetterAndGetter(JavaWriter jw, List<FieldData> infos) throws IOException {

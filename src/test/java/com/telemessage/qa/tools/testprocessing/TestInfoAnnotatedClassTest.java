@@ -11,15 +11,14 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Locale;
 
 /**
- * @author Grinfeld Mikhail
- * @since 10/22/2017.
+ * SPI for testing compilation errors.
+ * @author juancavallotti (http://jcavallotti.blogspot.co.il/2013/05/how-to-unit-test-annotation-processor.html)
  */
 @RunWith(Parameterized.class)
 public class TestInfoAnnotatedClassTest {

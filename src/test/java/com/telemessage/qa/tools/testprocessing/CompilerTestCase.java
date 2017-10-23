@@ -1,17 +1,12 @@
 package com.telemessage.qa.tools.testprocessing;
 
-/**
- * @author Grinfeld Mikhail
- * @since 10/22/2017.
- */
-
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.util.List;
 
 /**
  * SPI for testing compilation errors.
- * @author juancavallotti
+ * @author juancavallotti (http://jcavallotti.blogspot.co.il/2013/05/how-to-unit-test-annotation-processor.html)
  */
 public interface CompilerTestCase {
 
