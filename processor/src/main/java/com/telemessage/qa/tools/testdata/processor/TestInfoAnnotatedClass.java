@@ -79,7 +79,6 @@ class TestInfoAnnotatedClass {
         PackageElement pkg = elementUtils.getPackageOf(annotatedClassElement);
         String prefix = pkg.getQualifiedName().toString();
         for(AnnotationValue typeElement : annotations) {
-            System.out.println(typeElement.toString());
             Class<? extends Annotation> clazz = (Class<? extends Annotation>) Class.forName(typeElement.getValue().toString());
             String className = clazz.getSimpleName() + classSuffix;
             JavaFileObject jfo = null;
@@ -139,23 +138,40 @@ class TestInfoAnnotatedClass {
 
     private void writeFillMethod(JavaWriter jw, List<FieldData> infos, String currentClassName, Class annotCLass) throws IOException {
         jw.beginMethod(currentClassName, "fill", EnumSet.of(Modifier.PUBLIC), annotCLass.getCanonicalName(), "me");
+        jw.emitStatement("if(me == null) return this");
         Map<String, FieldData> mapData = infos.stream().collect(Collectors.toMap(FieldData::getName, Function.identity(), (k1, k2) -> k1));
         for (Method m : annotCLass.getMethods()) {
             FieldData fd = mapData.get(m.getName());
             if (fd != null && m.getReturnType() != null && !m.getReturnType().equals(Void.class)) {
-
                 if (!fd.isArray() &&  !m.getReturnType().isAnnotation()) {
                     appendfillNoAnnotationType(jw, m.getReturnType(), fd);
                 } else if (m.getReturnType().isAnnotation()) {
                     appendFillWithAnnotation(jw, m.getReturnType(), fd, classSuffix);
                 } else if (fd.isArray()) {
-
+                    appendFillForArrayElement(jw, fd, m.getReturnType().getComponentType(), classSuffix);
                 }
             }
         }
         jw.emitStatement("return this");
         jw.endMethod();
         jw.emitEmptyLine();
+    }
+
+    private static void appendFillForArrayElement(JavaWriter jw, FieldData fd, Class type, String classSuffix) throws IOException {
+        String objClassName = type.getSimpleName() + classSuffix;
+        String method = fd.method.substring(0,1).toUpperCase() + fd.method.substring(1);
+        jw.beginControlFlow("if(me.%s != null)", fd.getMethod() + "()");
+        jw.beginControlFlow("for (%s el : me.%s)", type.getCanonicalName(), fd.getMethod() + "()");
+        if (type.isAnnotation()) {
+            jw.emitStatement("this.add%s(el != null ? new %s().fill(el) : null)", method, objClassName);
+        } else {
+            jw.emitStatement("%s e = java.util.Objects.equals(el, initialValue(%s.class)) ? null : el",
+                    boxedClass(type).getCanonicalName(), type.getCanonicalName());
+
+            jw.emitStatement("if (e != null) this.add%s(e)", method);
+        }
+        jw.endControlFlow();
+        jw.endControlFlow();
     }
 
     private static void appendFillWithAnnotation(JavaWriter jw, Class returnType, FieldData fd, String classSuffix) throws IOException {
@@ -188,7 +204,7 @@ class TestInfoAnnotatedClass {
 
     private static void writePrivateStaticToStringForList(JavaWriter jw) throws IOException {
         jw.beginMethod("String", "listAsString", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC), "java.util.List<?>", "list");
-        jw.emitStatement("return list.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(\",\", \"[\", \"]\"))");
+        jw.emitStatement("return java.util.Optional.ofNullable(list).orElseGet(java.util.ArrayList::new).stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(\",\", \"[\", \"]\"))");
         jw.endMethod();
         jw.emitEmptyLine();
     }

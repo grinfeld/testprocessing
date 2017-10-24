@@ -7,7 +7,7 @@
     <groupId>com.telemessage.qa.tools.test-data-processing</groupId>
     <artifactId>root</artifactId>
     <packaging>pom</packaging>
-    <version>0.9.1</version>
+    <version>0.9.2</version>
     <modules>
         <module>annotation</module>
         <module>processor</module>
