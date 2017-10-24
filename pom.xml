@@ -7,7 +7,7 @@
     <groupId>com.telemessage.qa.tools.test-data-processing</groupId>
     <artifactId>root</artifactId>
     <packaging>pom</packaging>
-    <version>0.9</version>
+    <version>0.9.1</version>
     <modules>
         <module>annotation</module>
         <module>processor</module>
@@ -20,40 +20,17 @@
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
         <maven.source.plugin.version>3.0.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
-        <javapoet.version>1.9.0</javapoet.version>
-        <javawriter.version>2.5.1</javawriter.version>
         <junit.version>4.12</junit.version>
-        <google.auto-service.version>1.0-rc3</google.auto-service.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Java Poet to generate java files -->
-            <dependency>
-                <groupId>com.squareup</groupId>
-                <artifactId>javapoet</artifactId>
-                <version>${javapoet.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup</groupId>
-                <artifactId>javawriter</artifactId>
-                <version>${javawriter.version}</version>
-            </dependency>
-            <!-- Auto service annotation processor -->
-            <dependency>
-                <groupId>com.google.auto.service</groupId>
-                <artifactId>auto-service</artifactId>
-                <version>${google.auto-service.version}</version>
-                <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
